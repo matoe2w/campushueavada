@@ -45,7 +45,7 @@ node_capacities = np.array([25, 35, 50, 40, 65, 35, 40, 45, 60, 130, 0, 0])
 
 # Massive attraction weight shift applied directly to the Library (Node 9)
 node_attraction_weights = np.array(
-    [1.2, 1.3, 1.6, 0.9, 2.0, 0.6, 1.4, 1.4, 2.2, 25.0, 0.5, 0.5]
+    [1.2, 1.3, 1.6, 0.9, 2.0, 0.6, 1.4, 1.4, 2.2, 10.0, 0.5, 0.5]
 )
 
 num_nodes = len(node_names)
@@ -90,7 +90,7 @@ SQUIGGLE_FREQUENCY = 2
 pygame.init()
 
 # Time multiplier lowered to exactly 1000 simulated seconds per real second
-TIME_MULTIPLIER = 1000
+TIME_MULTIPLIER = 600
 WIDTH, HEIGHT = 1300, 800
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("UCSG Predictive Infrastructure Simulation")
