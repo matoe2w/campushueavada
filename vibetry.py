@@ -45,7 +45,19 @@ node_capacities = np.array([25, 35, 50, 40, 65, 35, 40, 45, 60, 130, 0, 0])
 
 # Massive attraction weight shift applied directly to the Library (Node 9)
 node_attraction_weights = np.array(
-    [1.2, 1.3, 1.6, 0.9, 2.0, 0.6, 1.4, 1.4, 2.2, 10.0, 0.5, 0.5]
+    [1.2, # Artes
+     1.3, # Jurisprudencia
+     1.6, # Econ.
+     0.9, # Ed. Técnica
+     2.0, # Med.
+     0.6, # filosofía
+     1.4, # Arch.
+     1.4, # Ing.
+     2.2, # Postgrado
+     10.0, # Biblioteca
+     0.5, # Cruce norte
+     0.5 # Cruce sur
+    ] # ATTRACTION WEIGHTS
 )
 
 num_nodes = len(node_names)
