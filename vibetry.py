@@ -45,19 +45,20 @@ node_capacities = np.array([25, 35, 50, 40, 65, 35, 40, 45, 60, 130, 0, 0])
 
 # Massive attraction weight shift applied directly to the Library (Node 9)
 node_attraction_weights = np.array(
-    [1.2, # Artes
-     1.3, # Jurisprudencia
-     1.6, # Econ.
-     0.9, # Ed. Técnica
-     2.0, # Med.
-     0.6, # filosofía
-     1.4, # Arch.
-     1.4, # Ing.
-     2.2, # Postgrado
-     10.0, # Biblioteca
-     0.5, # Cruce norte
-     0.5 # Cruce sur
-    ] # ATTRACTION WEIGHTS
+    [
+        1.2,  # Artes
+        1.3,  # Jurisprudencia
+        1.6,  # Econ.
+        0.9,  # Ed. Técnica
+        2.0,  # Med.
+        0.6,  # filosofía
+        1.4,  # Arch.
+        1.4,  # Ing.
+        2.2,  # Postgrado
+        10.0, # Biblioteca
+        0.5,  # Cruce norte
+        0.5   # Cruce sur
+    ]
 )
 
 num_nodes = len(node_names)
@@ -129,7 +130,7 @@ APP_CERTAINTY = 1.00
 
 MAX_POOL_AGENTS = 550
 # Set strictly to match total physical capacity across the architecture
-TARGET_ACTIVE_STUDENTS = int(np.sum(node_capacities) + 200)
+TARGET_ACTIVE_STUDENTS = int(np.sum(node_capacities))
 
 agent_states = np.zeros(MAX_POOL_AGENTS, dtype=int)
 current_nodes = np.zeros(MAX_POOL_AGENTS, dtype=int)
@@ -147,6 +148,7 @@ search_times = np.zeros(MAX_POOL_AGENTS)
 failed_attempts = np.zeros(MAX_POOL_AGENTS, dtype=int)
 total_search_time_accumulated = 0.0
 total_search_trips_completed = 0
+total_failed_attempts_accumulated = 0
 
 
 def get_occupancy():
@@ -213,14 +215,10 @@ while running:
     active_count = np.sum(agent_states > 0)
 
     # Spawning Framework
-    # Change the spawn rate logic in the main loop
     if active_count < TARGET_ACTIVE_STUDENTS:
         inactive_slots = np.where(agent_states == 0)[0]
-        if (
-            len(inactive_slots) > 0 and np.random.rand() < 0.9
-        ):  # Increased from 0.4 to 0.9
+        if len(inactive_slots) > 0 and np.random.rand() < 0.9:
             spawn_idx = inactive_slots[0]
-            # ... rest of your spawn logic
             agent_states[spawn_idx] = 1
             current_nodes[spawn_idx] = np.random.randint(0, num_nodes)
             next_nodes[spawn_idx] = select_next_node(
@@ -253,12 +251,12 @@ while running:
             if distance_walked[idx] >= segment_L:
                 node_arrived = next_nodes[idx]
 
-                # --- REPLACE THIS SECTION IN YOUR PROCESSING LOOP ---
                 # Ensure strict capacity enforcement
                 if node_arrived < 10:
                     if faculty_headcounts[node_arrived] < node_capacities[node_arrived]:
                         # Successfully found a seat
                         total_search_time_accumulated += search_times[idx]
+                        total_failed_attempts_accumulated += failed_attempts[idx]
                         total_search_trips_completed += 1
 
                         current_nodes[idx] = node_arrived
@@ -271,7 +269,6 @@ while running:
                     else:
                         # FAILED to find a seat, log this as a search event
                         failed_attempts[idx] += 1
-                        # DO NOT let them stay at the node
                         current_nodes[idx] = node_arrived
                         next_nodes[idx] = select_next_node(
                             node_arrived, faculty_headcounts
@@ -363,7 +360,8 @@ while running:
     title_surface = title_font.render(title_text, True, COLOR_TEXT)
     screen.blit(title_surface, (25, 25))
 
-    app_status_text = f"STUDY APP PATH ROUTING: {'ACTIVE (85% certainty)' if USE_STUDY_APP else 'OFF (Pure Random Search)'}"
+    app_certainty_pct = int(APP_CERTAINTY * 100)
+    app_status_text = f"STUDY APP PATH ROUTING: {'ACTIVE (' + str(app_certainty_pct) + '% certainty)' if USE_STUDY_APP else 'OFF (Pure Random Search)'}"
     app_status_color = (40, 120, 200) if USE_STUDY_APP else (140, 145, 150)
     app_surface = ui_font.render(app_status_text, True, app_status_color)
     screen.blit(app_surface, (25, 55))
@@ -372,21 +370,31 @@ while running:
         avg_search_minutes = (
             total_search_time_accumulated / total_search_trips_completed
         ) / 60.0
-        metric_text = f"Average Time Spent Looking For a Spot: {avg_search_minutes:.1f} Simulation Minutes"
+        avg_full_places = (
+            total_failed_attempts_accumulated / total_search_trips_completed
+        )
+        metric_time_text = f"Average Time Spent Looking For a Spot: {avg_search_minutes:.1f} Simulation Minutes"
+        metric_places_text = f"Average Full Places Visited: {avg_full_places:.1f} buildings"
     else:
-        metric_text = (
+        metric_time_text = (
             "Average Time Spent Looking For a Spot: Collecting initial data..."
         )
+        metric_places_text = (
+            "Average Full Places Visited: Collecting initial data..."
+        )
 
-    metric_surface = ui_font.render(
-        metric_text, True, COLOR_NODE if not USE_STUDY_APP else COLOR_WALKING
-    )
-    screen.blit(metric_surface, (25, 80))
+    text_color = COLOR_WALKING if USE_STUDY_APP else COLOR_NODE
+
+    metric_time_surface = ui_font.render(metric_time_text, True, text_color)
+    screen.blit(metric_time_surface, (25, 80))
+
+    metric_places_surface = ui_font.render(metric_places_text, True, text_color)
+    screen.blit(metric_places_surface, (25, 100))
 
     instruction_surface = label_font.render(
         "Press 'A' on your keyboard to toggle the App live", True, (120, 130, 140)
     )
-    screen.blit(instruction_surface, (25, 105))
+    screen.blit(instruction_surface, (25, 125))
 
     # ==========================================
     # 6. LIVE DATA GRAPH SIDEBAR PANEL
