@@ -104,7 +104,7 @@ pygame.init()
 
 # Time multiplier lowered to exactly 1000 simulated seconds per real second
 TIME_MULTIPLIER = 600
-WIDTH, HEIGHT = 720, 800
+WIDTH, HEIGHT = 1300, 800
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("UCSG Predictive Infrastructure Simulation")
 clock = pygame.time.Clock()
